@@ -32,3 +32,21 @@ workboxSW.router.registerRoute('/pages/article*.html', args => {
     return response;
   });
 });
+
+const postHandler = workboxSW.strategies.cacheFirst({
+  cacheName: 'posts-cache',
+  cacheExpiration: {
+    maxEntries: 50
+  }
+});
+
+workboxSW.router.registerRoute('/pages/post*.html', args => {
+  return postHandler.handle(args).then(response => {
+    if (response.status === 404) {
+      return caches.match('pages/404.html');
+    }
+    return response;
+  }).catch(() => {
+    return caches.match('pages/offline.html');
+  })
+});
